@@ -21,7 +21,7 @@
 
     <!-- Feed -->
     <div class="feed" ref="feedEl">
-      <div v-if="results.length === 0" class="empty">Waiting for voice input...</div>
+      <div v-if="results.length === 0" class="empty">Waiting for voice input or type a question below...</div>
       <TransitionGroup name="card">
         <div v-for="item in results" :key="item.id" class="card">
           <div class="time">{{ item.time }}</div>
@@ -30,6 +30,20 @@
         </div>
       </TransitionGroup>
     </div>
+
+    <!-- Type input -->
+    <div v-if="isConnected" class="input-box">
+      <input
+        v-model="typedQuestion"
+        type="text"
+        placeholder="Type a question and press Enter or click Send..."
+        @keyup.enter="sendTyped"
+        :disabled="sending"
+      />
+      <button @click="sendTyped" :disabled="sending || !typedQuestion.trim()">
+        {{ sending ? '...' : 'Send' }}
+      </button>
+    </div>
   </div>
 </template>
 
@@ -37,12 +51,14 @@
 import { ref, nextTick, onMounted } from 'vue'
 import { io } from 'socket.io-client'
 
-const serverUrl  = ref(new URLSearchParams(window.location.search).get('server') || '')
+const serverUrl   = ref(new URLSearchParams(window.location.search).get('server') || '')
 const isConnected = ref(false)
 const connecting  = ref(false)
 const statusText  = ref('Not connected')
 const results     = ref([])
 const feedEl      = ref(null)
+const typedQuestion = ref('')
+const sending     = ref(false)
 let socket        = null
 
 function connect() {
@@ -80,6 +96,16 @@ function formatAnswer(text) {
   return text
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/`([^`]+)`/g, '<code>$1</code>')
+}
+
+async function sendTyped() {
+  const q = typedQuestion.value.trim()
+  if (!q || !socket) return
+  sending.value = true
+  typedQuestion.value = ''
+  // Send to server — server will ask Claude and emit back ai_result
+  socket.emit('ask', { question: q })
+  sending.value = false
 }
 
 onMounted(() => {
@@ -153,4 +179,33 @@ header p  { color: #888; margin-top: 6px; font-size: 0.9rem; }
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+.input-box {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: #1a1d2e;
+  border-top: 1px solid #2a2d3e;
+  padding: 14px 20px;
+  display: flex;
+  gap: 10px;
+  max-width: 860px;
+  margin: 0 auto;
+}
+.input-box input {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #0f1117;
+  color: #e0e0e0;
+  font-size: 0.95rem;
+}
+.input-box input:focus { outline: none; border-color: #4fc3f7; }
+.input-box button {
+  background: #4fc3f7; color: #000; border: none;
+  padding: 10px 22px; border-radius: 8px;
+  cursor: pointer; font-size: 0.95rem; font-weight: 600;
+}
+.input-box button:disabled { background: #333; color: #666; cursor: not-allowed; }
+.feed { padding-bottom: 80px; }
 </style>
