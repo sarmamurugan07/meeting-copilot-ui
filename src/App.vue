@@ -9,6 +9,17 @@
     <div class="status">
       <span class="dot" :class="{ connected: isConnected }"></span>
       <span>{{ statusText }}</span>
+      <span v-if="isConnected" class="lang-selector">
+        &nbsp;|&nbsp; Context:
+        <select v-model="selectedLang">
+          <option value="C#">C#</option>
+          <option value="Java">Java</option>
+          <option value="Python">Python</option>
+          <option value="JavaScript">JavaScript</option>
+          <option value="TypeScript">TypeScript</option>
+          <option value="General">General</option>
+        </select>
+      </span>
     </div>
 
     <!-- Setup box -->
@@ -59,6 +70,7 @@ const results     = ref([])
 const feedEl      = ref(null)
 const typedQuestion = ref('')
 const sending     = ref(false)
+const selectedLang = ref('C#')
 let socket        = null
 
 function connect() {
@@ -103,8 +115,8 @@ async function sendTyped() {
   if (!q || !socket) return
   sending.value = true
   typedQuestion.value = ''
-  // Send to server — server will ask Claude and emit back ai_result
-  socket.emit('ask', { question: q })
+  // Include selected language context so Claude answers in the right language
+  socket.emit('ask', { question: q, language: selectedLang.value })
   sending.value = false
 }
 
@@ -172,6 +184,13 @@ header p  { color: #888; margin-top: 6px; font-size: 0.9rem; }
 .card .answer code {
   background: #2a2d3e; padding: 2px 6px;
   border-radius: 4px; font-family: monospace; color: #80cbc4;
+}
+
+.lang-selector { font-size: 0.85rem; color: #888; }
+.lang-selector select {
+  background: #1e2130; color: #e0e0e0;
+  border: 1px solid #333; border-radius: 6px;
+  padding: 2px 8px; font-size: 0.85rem; cursor: pointer;
 }
 
 .card-enter-active { animation: slideIn 0.3s ease; }
