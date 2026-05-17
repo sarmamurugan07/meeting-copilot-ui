@@ -31,16 +31,20 @@
             <label><input type="checkbox" v-model="srcTyped" /> ⌨️ Typed</label>
           </div>
           <div class="lang-wrap">
-            <span>Language:</span>
-            <select v-model="selectedLang" @change="onLangChange">
-              <option value="C#">C#</option>
-              <option value="Java">Java</option>
-              <option value="Python">Python</option>
-              <option value="JavaScript">JavaScript</option>
-              <option value="TypeScript">TypeScript</option>
-              <option value="SQL">SQL</option>
-              <option value="General">General</option>
-            </select>
+            <span>Languages:</span>
+            <div class="multi-lang">
+              <!-- Checkboxes for each language -->
+              <label v-for="lang in availableLangs" :key="lang" class="lang-chip"
+                :class="{ active: selectedLangs.includes(lang) }">
+                <input type="checkbox" :value="lang" v-model="selectedLangs" @change="onLangChange" />
+                {{ lang }}
+              </label>
+              <!-- Add custom language -->
+              <div class="add-lang">
+                <input v-model="newLang" placeholder="+ Add..." @keyup.enter="addLang" maxlength="20" />
+                <button @click="addLang" :disabled="!newLang.trim()">+</button>
+              </div>
+            </div>
           </div>
           <button class="clear-btn" @click="clearChat">🗑 Clear</button>
         </div>
@@ -164,14 +168,26 @@ const connecting    = ref(false)
 const tab           = ref('chat')
 
 // Chat
-const messages      = ref([])
-const feedEl        = ref(null)
-const typedQuestion = ref('')
-const sending       = ref(false)
-const selectedLang  = ref('C#')
-const srcVoice      = ref(true)
-const srcClipboard  = ref(true)
-const srcTyped      = ref(true)
+const messages       = ref([])
+const feedEl         = ref(null)
+const typedQuestion  = ref('')
+const sending        = ref(false)
+const selectedLang   = computed(() => selectedLangs.value.join(', ') || 'General')
+const selectedLangs  = ref(['C#'])
+const availableLangs = ref(['C#', 'Java', 'Python', 'JavaScript', 'TypeScript', 'SQL', 'General'])
+const newLang        = ref('')
+const srcVoice       = ref(true)
+const srcClipboard   = ref(true)
+const srcTyped       = ref(true)
+
+function addLang() {
+  const l = newLang.value.trim()
+  if (!l) return
+  if (!availableLangs.value.includes(l)) availableLangs.value.push(l)
+  if (!selectedLangs.value.includes(l))  selectedLangs.value.push(l)
+  newLang.value = ''
+  onLangChange()
+}
 
 // Quiz
 const quizLang       = ref('C#')
@@ -316,11 +332,28 @@ header p  { color: #888; margin-top: 5px; font-size: 0.88rem; }
 .sources { display: flex; gap: 12px; }
 .sources label { display: flex; align-items: center; gap: 5px; cursor: pointer; color: #ccc; }
 .sources input[type=checkbox] { accent-color: #4fc3f7; }
-.lang-wrap { display: flex; align-items: center; gap: 6px; color: #888; margin-left: auto; }
-.lang-wrap select {
-  background: #0f1117; color: #e0e0e0; border: 1px solid #333;
-  border-radius: 6px; padding: 3px 10px; font-size: 0.85rem; cursor: pointer;
+.lang-wrap { display: flex; align-items: flex-start; gap: 6px; color: #888; margin-left: auto; flex-wrap: wrap; }
+.lang-wrap > span { padding-top: 4px; white-space: nowrap; }
+.multi-lang { display: flex; flex-wrap: wrap; gap: 6px; }
+.lang-chip {
+  display: flex; align-items: center; gap: 4px;
+  background: #0f1117; border: 1px solid #333; border-radius: 20px;
+  padding: 3px 10px; cursor: pointer; font-size: 0.8rem; color: #888;
+  transition: all 0.2s; user-select: none;
 }
+.lang-chip.active { border-color: #4fc3f7; color: #4fc3f7; background: #1a2a3a; }
+.lang-chip input[type=checkbox] { display: none; }
+.add-lang { display: flex; gap: 4px; }
+.add-lang input {
+  width: 80px; padding: 3px 8px; border-radius: 20px;
+  border: 1px dashed #444; background: #0f1117; color: #e0e0e0; font-size: 0.8rem;
+}
+.add-lang input:focus { outline: none; border-color: #4fc3f7; }
+.add-lang button {
+  background: #4fc3f7; color: #000; border: none;
+  width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: 700;
+}
+.add-lang button:disabled { background: #333; color: #666; cursor: not-allowed; }
 .clear-btn {
   background: transparent; color: #666; border: 1px solid #333;
   padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;
