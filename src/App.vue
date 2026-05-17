@@ -285,14 +285,18 @@ function submitQuiz() {
 
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
 body {
   font-family: 'Segoe UI', sans-serif;
   background: #0f1117; color: #e0e0e0;
-  min-height: 100vh; padding: 20px 20px 100px;
+  height: 100vh; display: flex; flex-direction: column;
 }
-.app { max-width: 860px; margin: 0 auto; }
+.app {
+  max-width: 860px; width: 100%; margin: 0 auto;
+  display: flex; flex-direction: column; height: 100vh; padding: 0 16px;
+}
 
-header { text-align: center; padding: 20px 0 20px; }
+header { text-align: center; padding: 14px 0 12px; flex-shrink: 0; }
 header h1 { font-size: 1.8rem; color: #4fc3f7; }
 header p  { color: #888; margin-top: 5px; font-size: 0.88rem; }
 
@@ -314,7 +318,7 @@ header p  { color: #888; margin-top: 5px; font-size: 0.88rem; }
 }
 
 /* Tabs */
-.tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+.tabs { display: flex; gap: 8px; margin-bottom: 10px; flex-shrink: 0; }
 .tabs button {
   padding: 8px 22px; border-radius: 8px; border: 1px solid #333;
   background: #1e2130; color: #888; cursor: pointer; font-size: 0.9rem;
@@ -324,7 +328,8 @@ header p  { color: #888; margin-top: 5px; font-size: 0.88rem; }
 /* Controls */
 .controls-bar {
   display: flex; align-items: center; flex-wrap: wrap; gap: 12px;
-  background: #1e2130; border-radius: 10px; padding: 10px 16px; margin-bottom: 14px; font-size: 0.85rem;
+  background: #1e2130; border-radius: 10px; padding: 10px 16px;
+  margin-bottom: 10px; font-size: 0.85rem; flex-shrink: 0;
 }
 .dot { width: 10px; height: 10px; border-radius: 50%; background: #f44336; }
 .dot.connected { background: #4caf50; }
@@ -360,8 +365,14 @@ header p  { color: #888; margin-top: 5px; font-size: 0.88rem; }
 }
 .clear-btn:hover { color: #f44336; border-color: #f44336; }
 
-/* Chat feed */
-.feed { margin-top: 4px; }
+/* Chat feed — scrollable area */
+.feed {
+  flex: 1; overflow-y: auto; padding-right: 4px;
+  scrollbar-width: thin; scrollbar-color: #2a2d3e transparent;
+}
+.feed::-webkit-scrollbar { width: 6px; }
+.feed::-webkit-scrollbar-track { background: transparent; }
+.feed::-webkit-scrollbar-thumb { background: #2a2d3e; border-radius: 3px; }
 .empty { text-align: center; color: #444; margin-top: 60px; }
 .card {
   background: #1e2130; border-radius: 12px; padding: 16px 20px;
@@ -379,12 +390,12 @@ header p  { color: #888; margin-top: 5px; font-size: 0.88rem; }
 .answer code { background: #2a2d3e; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #80cbc4; }
 .answer strong { color: #fff; }
 
-/* Input box */
+/* Input box — sticks to bottom, no overlap */
 .input-box {
-  position: fixed; bottom: 0; left: 0; right: 0;
+  flex-shrink: 0;
   background: #1a1d2e; border-top: 1px solid #2a2d3e;
-  padding: 12px 20px; display: flex; gap: 10px;
-  max-width: 860px; margin: 0 auto;
+  padding: 10px 0; display: flex; gap: 10px;
+  margin: 0 -16px; padding: 10px 16px;
 }
 .input-box input {
   flex: 1; padding: 10px 14px; border-radius: 8px;
@@ -398,7 +409,8 @@ header p  { color: #888; margin-top: 5px; font-size: 0.88rem; }
 .input-box button:disabled { background: #333; color: #666; cursor: not-allowed; }
 
 /* Quiz */
-.quiz-panel { padding-bottom: 40px; }
+.quiz-panel { flex: 1; overflow-y: auto; padding-bottom: 20px;
+  scrollbar-width: thin; scrollbar-color: #2a2d3e transparent; }
 .quiz-controls {
   display: flex; align-items: center; flex-wrap: wrap; gap: 12px;
   background: #1e2130; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px;
@@ -453,5 +465,57 @@ header p  { color: #888; margin-top: 5px; font-size: 0.88rem; }
 @keyframes slideIn {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Mobile responsive ── */
+@media (max-width: 600px) {
+  body { padding: 12px 12px 120px; }
+  header h1 { font-size: 1.4rem; }
+  header p  { font-size: 0.8rem; }
+
+  /* Tabs full width */
+  .tabs { gap: 6px; }
+  .tabs button { flex: 1; padding: 10px 6px; font-size: 0.85rem; text-align: center; }
+
+  /* Controls stack vertically */
+  .controls-bar {
+    flex-direction: column; align-items: flex-start; gap: 10px; padding: 12px;
+  }
+  .sources { flex-wrap: wrap; gap: 10px; }
+  .lang-wrap { margin-left: 0; width: 100%; }
+  .multi-lang { gap: 6px; }
+  .lang-chip { font-size: 0.78rem; padding: 4px 10px; }
+  .add-lang input { width: 70px; }
+  .clear-btn { align-self: flex-end; }
+
+  /* Cards */
+  .card { padding: 12px 14px; }
+  .question { font-size: 0.88rem; }
+  .answer   { font-size: 0.85rem; }
+  .answer pre { font-size: 0.78rem; padding: 8px; }
+
+  /* Fixed input box — full width, larger touch targets */
+  .input-box {
+    padding: 10px 12px;
+    gap: 8px;
+    margin: 0 -12px; padding: 10px 12px;
+  }
+  .input-box input {
+    font-size: 16px; /* prevents iOS zoom */
+    padding: 12px 12px;
+  }
+  .input-box button {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+
+  /* Quiz mobile */
+  .quiz-controls { flex-direction: column; align-items: flex-start; }
+  .gen-btn { margin-left: 0; width: 100%; }
+  .quiz-card { padding: 16px; }
+  .quiz-question { font-size: 0.95rem; }
+  .quiz-option { padding: 10px 12px; font-size: 0.88rem; }
+  .submit-btn { width: 100%; }
 }
 </style>
